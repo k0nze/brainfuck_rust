@@ -1,4 +1,8 @@
 use std::error::Error;
+use std::fs;
+
+mod token;
+use token::Token;
 
 pub struct Config {
     pub brainfuck_file_path: String,
@@ -19,6 +23,16 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    println!("{}", config.brainfuck_file_path);
+    // read brainfuck file into string
+    let program_string = fs::read_to_string(config.brainfuck_file_path)?;
+    let tokens = lex(&program_string);
+
+    println!("{}", tokens.len());
+
     Ok(())
+}
+
+pub fn lex(program_string: &str) -> Vec<Token> {
+    println!("{}", program_string);
+    Vec::new()
 }
