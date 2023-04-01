@@ -23,6 +23,11 @@ impl Config {
     }
 }
 
+/// Runs a brainfuck program
+///
+/// # Arguments
+///
+/// * `config` - Config containing the file path to the brainfuck program
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // read brainfuck file into string
     let program_string = fs::read_to_string(config.brainfuck_file_path)?;
@@ -33,6 +38,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Returns a vector of Token from a string
+///
+/// # Arguments
+///
+/// * `program_string` - A string containing the brainfuck program
 pub fn lex(program_string: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
 
