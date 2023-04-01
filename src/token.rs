@@ -10,6 +10,7 @@ pub enum TokenValue {
     Input,
     JumpForwardIfZero,
     JumpBackwardIfNonZero,
+    End,
 }
 
 impl fmt::Debug for TokenValue {
@@ -23,6 +24,7 @@ impl fmt::Debug for TokenValue {
             TokenValue::Input => write!(f, "Input"),
             TokenValue::JumpForwardIfZero => write!(f, "JumpForwardIfZero"),
             TokenValue::JumpBackwardIfNonZero => write!(f, "JumpBackwardIfNonZero"),
+            TokenValue::End => write!(f, "End"),
         }
     }
 }

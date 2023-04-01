@@ -4,6 +4,9 @@ use std::fs;
 mod token;
 use token::{Token, TokenValue};
 
+mod interpreter;
+use interpreter::Interpreter;
+
 mod state;
 use state::State;
 
@@ -54,36 +57,15 @@ pub fn lex(program_string: &str) -> Vec<Token> {
             tokens.push(t);
         };
     }
-
+    tokens.push(Token {
+        value: TokenValue::End,
+    });
     tokens
 }
 
 pub fn interpret(tokens: &Vec<Token>) {
-    let mut state = State::new();
-    for token in tokens {
-        match token.value {
-            TokenValue::MoveRight => {
-                state.move_right().unwrap();
-            }
-            TokenValue::MoveLeft => {
-                state.move_left().unwrap();
-            }
-            TokenValue::IncrementCell => {
-                state.increment_cell();
-            }
-            TokenValue::DecrementCell => {
-                state.decrement_cell();
-            }
-            TokenValue::Output => {
-                state.get_cell_value();
-            }
-            TokenValue::Input => {
-                state.set_cell_value(42);
-            }
-            TokenValue::JumpForwardIfZero => print!("["),
-            TokenValue::JumpBackwardIfNonZero => print!("]"),
-        }
-    }
+    let mut interpreter = Interpreter::new(tokens);
+    interpreter.interpret();
 }
 
 #[cfg(test)]
@@ -92,7 +74,7 @@ mod tests {
     use token::{Token, TokenValue};
 
     #[test]
-    fn lexer_test() {
+    fn test_lexer() {
         let program_string = "\
 <>+-adsfl ageaf
 .,[qowejga]";
@@ -122,9 +104,27 @@ mod tests {
                 },
                 Token {
                     value: TokenValue::JumpBackwardIfNonZero
+                },
+                Token {
+                    value: TokenValue::End
                 }
             ],
             lex(program_string)
         );
     }
+
+    /*
+        #[test]
+        fn test_interpreter_jump_forward() {
+            let program_string = "\
+    +++ // increment cell 0 to 3
+    >   // move pointer to cell 1
+    ++  // increment cell 1 to 2
+    [   // jump forward if current cell (1) is 0
+    -   // decrement current cell (1)
+    ]   // jump backward if current cell (1) is not 0
+    ";
+            assert!(true);
+        }
+    */
 }
