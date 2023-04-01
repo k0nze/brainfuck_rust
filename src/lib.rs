@@ -58,3 +58,48 @@ pub fn lex(program_string: &str) -> Vec<Token> {
 pub fn interpret(tokens: &Vec<Token>) {
     println!("{}", tokens.len());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use token::{Token, TokenValue};
+
+    #[test]
+    fn lexer_test() {
+        let program_string = "\
+<>+-adsfl ageaf
+.,[qowejga]";
+
+        let tokens = lex(program_string);
+
+        assert_eq!(
+            vec![
+                Token {
+                    value: TokenValue::MoveLeft
+                },
+                Token {
+                    value: TokenValue::MoveRight
+                },
+                Token {
+                    value: TokenValue::IncrementCell
+                },
+                Token {
+                    value: TokenValue::DecrementCell
+                },
+                Token {
+                    value: TokenValue::Output
+                },
+                Token {
+                    value: TokenValue::Input
+                },
+                Token {
+                    value: TokenValue::JumpForwardIfZero
+                },
+                Token {
+                    value: TokenValue::JumpBackwardIfNonZero
+                }
+            ],
+            tokens
+        );
+    }
+}

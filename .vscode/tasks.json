@@ -16,6 +16,18 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "cargo test",
+            "type": "shell",
+            "command": "cargo", // note: full path to the cargo
+            "args": [
+                "test"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

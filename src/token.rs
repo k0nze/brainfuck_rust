@@ -1,3 +1,6 @@
+use std::fmt;
+
+#[derive(PartialEq, Eq)]
 pub enum TokenValue {
     MoveRight,
     MoveLeft,
@@ -9,6 +12,28 @@ pub enum TokenValue {
     JumpBackwardIfNonZero,
 }
 
+impl fmt::Debug for TokenValue {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TokenValue::MoveRight => write!(f, "MoveRight"),
+            TokenValue::MoveLeft => write!(f, "MoveLeft"),
+            TokenValue::IncrementCell => write!(f, "IncrementCell"),
+            TokenValue::DecrementCell => write!(f, "DecrementCell"),
+            TokenValue::Output => write!(f, "Output"),
+            TokenValue::Input => write!(f, "Input"),
+            TokenValue::JumpForwardIfZero => write!(f, "JumpForwardIfZero"),
+            TokenValue::JumpBackwardIfNonZero => write!(f, "JumpBackwardIfNonZero"),
+        }
+    }
+}
+
+impl fmt::Display for TokenValue {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub struct Token {
     pub value: TokenValue,
 }
