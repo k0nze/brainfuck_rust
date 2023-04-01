@@ -4,6 +4,7 @@ use std::fs;
 mod token;
 use token::Token;
 
+// TODO move config into a separate file
 pub struct Config {
     pub brainfuck_file_path: String,
 }
@@ -33,6 +34,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn lex(program_string: &str) -> Vec<Token> {
-    println!("{}", program_string);
+    for c in program_string.chars() {
+        print!("{}", c);
+    }
     Vec::new()
 }
