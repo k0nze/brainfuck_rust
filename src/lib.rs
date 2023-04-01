@@ -112,19 +112,4 @@ mod tests {
             lex(program_string)
         );
     }
-
-    /*
-        #[test]
-        fn test_interpreter_jump_forward() {
-            let program_string = "\
-    +++ // increment cell 0 to 3
-    >   // move pointer to cell 1
-    ++  // increment cell 1 to 2
-    [   // jump forward if current cell (1) is 0
-    -   // decrement current cell (1)
-    ]   // jump backward if current cell (1) is not 0
-    ";
-            assert!(true);
-        }
-    */
 }
