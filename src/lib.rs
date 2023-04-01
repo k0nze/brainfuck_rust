@@ -2,7 +2,10 @@ use std::error::Error;
 use std::fs;
 
 mod token;
-use token::Token;
+use token::{Token, TokenValue};
+
+mod state;
+use state::State;
 
 // TODO move config into a separate file
 pub struct Config {
@@ -56,7 +59,31 @@ pub fn lex(program_string: &str) -> Vec<Token> {
 }
 
 pub fn interpret(tokens: &Vec<Token>) {
-    println!("{}", tokens.len());
+    let mut state = State::new();
+    for token in tokens {
+        match token.value {
+            TokenValue::MoveRight => {
+                state.move_right().unwrap();
+            }
+            TokenValue::MoveLeft => {
+                state.move_left().unwrap();
+            }
+            TokenValue::IncrementCell => {
+                state.increment_cell();
+            }
+            TokenValue::DecrementCell => {
+                state.decrement_cell();
+            }
+            TokenValue::Output => {
+                state.get_cell_value();
+            }
+            TokenValue::Input => {
+                state.set_cell_value(42);
+            }
+            TokenValue::JumpForwardIfZero => print!("["),
+            TokenValue::JumpBackwardIfNonZero => print!("]"),
+        }
+    }
 }
 
 #[cfg(test)]
