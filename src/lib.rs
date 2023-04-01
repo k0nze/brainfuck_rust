@@ -28,14 +28,23 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let program_string = fs::read_to_string(config.brainfuck_file_path)?;
     let tokens = lex(&program_string);
 
-    println!("{}", tokens.len());
+    interpret(&tokens);
 
     Ok(())
 }
 
 pub fn lex(program_string: &str) -> Vec<Token> {
+    let mut tokens = Vec::new();
+
     for c in program_string.chars() {
-        print!("{}", c);
+        if let Some(t) = Token::build(c) {
+            tokens.push(t);
+        };
     }
-    Vec::new()
+
+    tokens
+}
+
+pub fn interpret(tokens: &Vec<Token>) {
+    println!("{}", tokens.len());
 }
