@@ -70,8 +70,6 @@ mod tests {
 <>+-adsfl ageaf
 .,[qowejga]";
 
-        let tokens = lex(program_string);
-
         assert_eq!(
             vec![
                 Token {
@@ -99,7 +97,7 @@ mod tests {
                     value: TokenValue::JumpBackwardIfNonZero
                 }
             ],
-            tokens
+            lex(program_string)
         );
     }
 }
