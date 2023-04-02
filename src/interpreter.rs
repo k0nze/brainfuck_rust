@@ -47,16 +47,34 @@ impl<'a> Interpreter<'a> {
                     self.state.set_cell_value(42);
                     self.token_index += 1;
                 }
-                TokenValue::JumpForwardIfZero => {
-                    println!("jump forward");
-                }
-                TokenValue::JumpBackwardIfNonZero => {
-                    println!("jump backward");
-                }
+                TokenValue::JumpForwardIfZero => match self.state.cells[self.state.pointer] {
+                    0 => {
+                        self.jump_forward();
+                    }
+                    _ => {
+                        self.token_index += 1;
+                    }
+                },
+                TokenValue::JumpBackwardIfNonZero => match self.state.cells[self.state.pointer] {
+                    0 => {
+                        self.token_index += 1;
+                    }
+                    _ => {
+                        self.jump_backward();
+                    }
+                },
                 _ => {}
             }
             token = &self.tokens[self.token_index];
         }
+    }
+
+    pub fn jump_forward(&mut self) {
+        println!("jump forward");
+    }
+
+    pub fn jump_backward(&mut self) {
+        println!("jump backward");
     }
 }
 
@@ -99,8 +117,10 @@ mod tests {
 
         let mut interpreter = Interpreter::new(&tokens);
         interpreter.interpret();
+        assert_eq!(interpreter.token_index, 8);
 
         let state = interpreter.state;
+        assert_eq!(state.pointer, 0);
         assert_eq!(state.cells[0], 3);
     }
     /*
