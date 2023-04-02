@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::token::TokenValue;
 use crate::State;
 use crate::Token;
@@ -70,11 +72,63 @@ impl<'a> Interpreter<'a> {
     }
 
     pub fn jump_forward(&mut self) {
-        println!("jump forward");
+        // move forward to find matching ]
+        let mut nesting_counter = 0;
+        let mut token_search_index = self.token_index + 1;
+
+        // TODO handle out of bounds error
+        loop {
+            match self.tokens[token_search_index].value {
+                TokenValue::JumpForwardIfZero => {
+                    nesting_counter += 1;
+                }
+                TokenValue::JumpBackwardIfNonZero => {
+                    // no nesting, therefore matching ] was found
+                    // TODO nesting counter is less than 0 which means an something is wrong
+                    match nesting_counter.cmp(&0) {
+                        Ordering::Equal => {
+                            self.token_index = token_search_index + 1;
+                            break;
+                        }
+                        Ordering::Greater => nesting_counter -= 1,
+                        Ordering::Less => (),
+                    };
+                }
+                _ => {}
+            }
+            token_search_index += 1;
+        }
     }
 
     pub fn jump_backward(&mut self) {
-        println!("jump backward");
+        // move backward to find matching [
+        let mut nesting_counter = 0;
+        let mut token_search_index = self.token_index - 1;
+
+        // TODO handle out of bounds error
+        loop {
+            match self.tokens[token_search_index].value {
+                TokenValue::JumpBackwardIfNonZero => {
+                    nesting_counter += 1;
+                }
+                TokenValue::JumpForwardIfZero => {
+                    // no nesting, therefore matching [ was found
+                    // TODO nesting counter is less than 0 which means an something is wrong
+                    match nesting_counter.cmp(&0) {
+                        Ordering::Equal => {
+                            self.token_index = token_search_index + 1;
+                            break;
+                        }
+                        Ordering::Greater => {
+                            nesting_counter -= 1;
+                        }
+                        Ordering::Less => (),
+                    }
+                }
+                _ => {}
+            }
+            token_search_index -= 1;
+        }
     }
 }
 
@@ -86,43 +140,74 @@ mod tests {
     fn test_linear_program() {
         // program: ++++><-.
         let tokens = vec![
-            Token {
-                value: TokenValue::IncrementCell,
-            },
-            Token {
-                value: TokenValue::IncrementCell,
-            },
-            Token {
-                value: TokenValue::IncrementCell,
-            },
-            Token {
-                value: TokenValue::IncrementCell,
-            },
-            Token {
-                value: TokenValue::MoveRight,
-            },
-            Token {
-                value: TokenValue::MoveLeft,
-            },
-            Token {
-                value: TokenValue::DecrementCell,
-            },
-            Token {
-                value: TokenValue::Output,
-            },
-            Token {
-                value: TokenValue::End,
-            },
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('.').unwrap(),
+            Token::build_end(),
         ];
 
         let mut interpreter = Interpreter::new(&tokens);
         interpreter.interpret();
-        assert_eq!(interpreter.token_index, 8);
+        assert_eq!(interpreter.token_index, tokens.len() - 1);
 
         let state = interpreter.state;
         assert_eq!(state.pointer, 0);
         assert_eq!(state.cells[0], 3);
     }
+
+    #[test]
+    fn test_jump_forward_no_nesting() {
+        // program: >[>>>]+>
+        let tokens = vec![
+            Token::build('>').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build_end(),
+        ];
+
+        let mut interpreter = Interpreter::new(&tokens);
+        interpreter.interpret();
+        assert_eq!(interpreter.token_index, tokens.len() - 1);
+
+        let state = interpreter.state;
+        assert_eq!(state.pointer, 2);
+        assert_eq!(state.cells[1], 1);
+    }
+
+    #[test]
+    fn test_jump_backward_no_nesting() {
+        // program: ++[-]+>
+        let tokens = vec![
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build_end(),
+        ];
+
+        let mut interpreter = Interpreter::new(&tokens);
+        interpreter.interpret();
+        assert_eq!(interpreter.token_index, tokens.len() - 1);
+
+        let state = interpreter.state;
+        assert_eq!(state.pointer, 1);
+        assert_eq!(state.cells[0], 1);
+        assert_eq!(state.cells[1], 0);
+    }
+
     /*
         #[test]
         fn test_jump_forward() {

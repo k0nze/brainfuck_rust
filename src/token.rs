@@ -70,6 +70,12 @@ impl Token {
             _ => None,
         }
     }
+
+    pub fn build_end() -> Token {
+        Token {
+            value: TokenValue::End,
+        }
+    }
 }
 
 impl fmt::Debug for Token {
