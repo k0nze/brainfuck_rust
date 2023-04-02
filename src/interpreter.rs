@@ -208,6 +208,35 @@ mod tests {
         assert_eq!(state.cells[1], 0);
     }
 
+    #[test]
+    fn test_loop_no_nesting() {
+        // program: +_31_+[>+<-]>.
+        // this programs sets cell 0 to 33 and than increments cell 1 in a loop while it decrements cell 0
+        // lastly, cell 1 will be printed with now contains the first "visible" ASCII character '!' (33)
+        let mut tokens = Vec::new();
+        for _ in 0..33 {
+            tokens.push(Token::build('+').unwrap());
+        }
+        tokens.push(Token::build('[').unwrap());
+        tokens.push(Token::build('>').unwrap());
+        tokens.push(Token::build('+').unwrap());
+        tokens.push(Token::build('<').unwrap());
+        tokens.push(Token::build('-').unwrap());
+        tokens.push(Token::build(']').unwrap());
+        tokens.push(Token::build('>').unwrap());
+        tokens.push(Token::build('.').unwrap());
+        tokens.push(Token::build_end());
+
+        let mut interpreter = Interpreter::new(&tokens);
+        interpreter.interpret();
+        assert_eq!(interpreter.token_index, tokens.len() - 1);
+
+        let state = interpreter.state;
+        assert_eq!(state.pointer, 1);
+        assert_eq!(state.cells[0], 0);
+        assert_eq!(state.cells[1], 33);
+    }
+
     /*
         #[test]
         fn test_jump_forward() {
