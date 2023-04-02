@@ -53,10 +53,7 @@ impl<'a> Interpreter<'a> {
                 TokenValue::JumpBackwardIfNonZero => {
                     println!("jump backward");
                 }
-                TokenValue::End => {
-                    /*break;*/
-                    println!("end");
-                }
+                _ => {}
             }
             token = &self.tokens[self.token_index];
         }
