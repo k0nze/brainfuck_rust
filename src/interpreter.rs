@@ -46,6 +46,7 @@ impl<'a> Interpreter<'a> {
                     self.token_index += 1;
                 }
                 TokenValue::Input => {
+                    // TODO request input
                     self.state.set_cell_value(42);
                     self.token_index += 1;
                 }
@@ -237,19 +238,56 @@ mod tests {
         assert_eq!(state.cells[1], 33);
     }
 
-    /*
-        #[test]
-        fn test_jump_forward() {
-            let program_string = "\
-    +++ // increment cell 0 to 3
-    >   // move pointer to cell 1
-    ++  // increment cell 1 to 2
-    [   // jump forward if current cell (1) is 0
-    -   // decrement current cell (1)
-    ]   // jump backward if current cell (1) is not 0
-    ";
-            println!("{}", program_string);
-            assert!(true);
-        }
-    */
+    #[test]
+    fn test_nested_loop() {
+        // program: ++++++++>++++>++<<[->[->[->+<]<]<]
+        let tokens = vec![
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build_end(),
+        ];
+
+        let mut interpreter = Interpreter::new(&tokens);
+        interpreter.interpret();
+        assert_eq!(interpreter.token_index, tokens.len() - 1);
+
+        let state = interpreter.state;
+        assert_eq!(state.pointer, 0);
+        assert_eq!(state.cells[0], 0);
+        assert_eq!(state.cells[1], 0);
+        assert_eq!(state.cells[2], 0);
+        assert_eq!(state.cells[3], 2);
+    }
 }
