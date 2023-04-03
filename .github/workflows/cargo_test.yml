@@ -12,5 +12,4 @@ jobs:
           toolchain: stable
       - uses: actions-rs/cargo@v1
         with:
-          command: cargo
-          args: test
+          command: test
