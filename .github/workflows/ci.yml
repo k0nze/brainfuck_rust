@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   unit_tests:
-    name: brainfuck_rust
+    name: unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,3 +13,14 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+  build_release:
+    name: build release
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
