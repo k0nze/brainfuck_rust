@@ -1,8 +1,8 @@
-name: cargo test
+name: ci
 on: [push]
 
 jobs:
-  build_and_test:
+  unit_tests:
     name: brainfuck_rust
     runs-on: ubuntu-latest
     steps:
