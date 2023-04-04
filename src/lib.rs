@@ -10,24 +10,8 @@ use interpreter::Interpreter;
 mod state;
 use state::State;
 
-// TODO move config into a separate file
-pub struct Config {
-    pub brainfuck_file_path: String,
-}
-
-impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 2 {
-            return Err("no path to brainfuck file provided.");
-        }
-
-        let brainfuck_file_path = args[1].clone();
-
-        Ok(Config {
-            brainfuck_file_path,
-        })
-    }
-}
+mod config;
+pub use config::Config;
 
 /// Runs a brainfuck program
 ///
