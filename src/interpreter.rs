@@ -29,8 +29,9 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Interprets the token stream
-    pub fn interpret(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn interpret(&mut self) -> Result<String, Box<dyn Error>> {
         let mut token = &self.tokens[self.token_index];
+        let mut output = String::new();
 
         while token.value != TokenValue::End {
             match token.value {
@@ -51,7 +52,9 @@ impl<'a> Interpreter<'a> {
                     self.token_index += 1;
                 }
                 TokenValue::Output => {
-                    print!("{}", self.state.get_cell_value() as char);
+                    let c = self.state.get_cell_value() as char;
+                    output.push(c);
+                    print!("{}", c);
                     self.token_index += 1;
                 }
                 TokenValue::Input => {
@@ -85,7 +88,7 @@ impl<'a> Interpreter<'a> {
             token = &self.tokens[self.token_index];
         }
 
-        Ok(())
+        Ok(output)
     }
 
     /// Jumps forward in the token stream from current token index to matching ]

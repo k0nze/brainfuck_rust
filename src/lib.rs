@@ -18,7 +18,7 @@ pub use config::Config;
 /// # Arguments
 ///
 /// * `config` - Config containing the file path to the brainfuck program
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+pub fn run(config: Config) -> Result<String, Box<dyn Error>> {
     // read brainfuck file into string
     let program_string = fs::read_to_string(config.brainfuck_file_path)?;
     let tokens = lex(&program_string);
@@ -45,7 +45,7 @@ pub fn lex(program_string: &str) -> Vec<Token> {
     tokens
 }
 
-pub fn interpret(tokens: &Vec<Token>) -> Result<(), Box<dyn Error>> {
+pub fn interpret(tokens: &Vec<Token>) -> Result<String, Box<dyn Error>> {
     let mut interpreter = Interpreter::new(tokens);
     interpreter.interpret()
 }
