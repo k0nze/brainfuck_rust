@@ -23,9 +23,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let program_string = fs::read_to_string(config.brainfuck_file_path)?;
     let tokens = lex(&program_string);
 
-    interpret(&tokens);
-
-    Ok(())
+    interpret(&tokens)
 }
 
 /// Returns a vector of Token from a string
@@ -47,9 +45,9 @@ pub fn lex(program_string: &str) -> Vec<Token> {
     tokens
 }
 
-pub fn interpret(tokens: &Vec<Token>) {
+pub fn interpret(tokens: &Vec<Token>) -> Result<(), Box<dyn Error>> {
     let mut interpreter = Interpreter::new(tokens);
-    interpreter.interpret();
+    interpreter.interpret()
 }
 
 #[cfg(test)]

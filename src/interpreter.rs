@@ -1,8 +1,15 @@
+use custom_error::custom_error;
 use std::cmp::Ordering;
+use std::error::Error;
 
 use crate::token::TokenValue;
 use crate::State;
 use crate::Token;
+
+custom_error! { pub InterpreterError
+    TokenIndexOutOfBound = "token index is out of bound",
+    NestingError = "loop nesting is incorrect"
+}
 
 pub struct Interpreter<'a> {
     pub state: State,
@@ -20,17 +27,17 @@ impl<'a> Interpreter<'a> {
         }
     }
 
-    pub fn interpret(&mut self) {
+    pub fn interpret(&mut self) -> Result<(), Box<dyn Error>> {
         let mut token = &self.tokens[self.token_index];
 
         while token.value != TokenValue::End {
             match token.value {
                 TokenValue::MoveRight => {
-                    self.state.move_right().unwrap();
+                    self.state.move_right()?;
                     self.token_index += 1;
                 }
                 TokenValue::MoveLeft => {
-                    self.state.move_left().unwrap();
+                    self.state.move_left()?;
                     self.token_index += 1;
                 }
                 TokenValue::IncrementCell => {
@@ -52,7 +59,7 @@ impl<'a> Interpreter<'a> {
                 }
                 TokenValue::JumpForwardIfZero => match self.state.cells[self.state.pointer] {
                     0 => {
-                        self.jump_forward();
+                        self.jump_forward()?;
                     }
                     _ => {
                         self.token_index += 1;
@@ -63,21 +70,22 @@ impl<'a> Interpreter<'a> {
                         self.token_index += 1;
                     }
                     _ => {
-                        self.jump_backward();
+                        self.jump_backward()?;
                     }
                 },
                 _ => {}
             }
             token = &self.tokens[self.token_index];
         }
+
+        Ok(())
     }
 
-    pub fn jump_forward(&mut self) {
+    pub fn jump_forward(&mut self) -> Result<(), InterpreterError> {
         // move forward to find matching ]
         let mut nesting_counter = 0;
         let mut token_search_index = self.token_index + 1;
 
-        // TODO handle out of bounds error
         loop {
             match self.tokens[token_search_index].value {
                 TokenValue::JumpForwardIfZero => {
@@ -85,28 +93,33 @@ impl<'a> Interpreter<'a> {
                 }
                 TokenValue::JumpBackwardIfNonZero => {
                     // no nesting, therefore matching ] was found
-                    // TODO nesting counter is less than 0 which means an something is wrong
                     match nesting_counter.cmp(&0) {
                         Ordering::Equal => {
                             self.token_index = token_search_index + 1;
                             break;
                         }
                         Ordering::Greater => nesting_counter -= 1,
-                        Ordering::Less => (),
+                        Ordering::Less => return Err(InterpreterError::NestingError),
                     };
                 }
                 _ => {}
             }
             token_search_index += 1;
+
+            // check if token_search_index is out of bounds
+            if token_search_index > self.tokens.len() {
+                return Err(InterpreterError::TokenIndexOutOfBound);
+            }
         }
+
+        Ok(())
     }
 
-    pub fn jump_backward(&mut self) {
+    pub fn jump_backward(&mut self) -> Result<(), InterpreterError> {
         // move backward to find matching [
         let mut nesting_counter = 0;
         let mut token_search_index = self.token_index - 1;
 
-        // TODO handle out of bounds error
         loop {
             match self.tokens[token_search_index].value {
                 TokenValue::JumpBackwardIfNonZero => {
@@ -114,7 +127,6 @@ impl<'a> Interpreter<'a> {
                 }
                 TokenValue::JumpForwardIfZero => {
                     // no nesting, therefore matching [ was found
-                    // TODO nesting counter is less than 0 which means an something is wrong
                     match nesting_counter.cmp(&0) {
                         Ordering::Equal => {
                             self.token_index = token_search_index + 1;
@@ -123,13 +135,20 @@ impl<'a> Interpreter<'a> {
                         Ordering::Greater => {
                             nesting_counter -= 1;
                         }
-                        Ordering::Less => (),
+                        Ordering::Less => return Err(InterpreterError::NestingError),
                     }
                 }
                 _ => {}
             }
             token_search_index -= 1;
+
+            // check if token_search_index is out of bounds
+            if token_search_index > self.tokens.len() {
+                return Err(InterpreterError::TokenIndexOutOfBound);
+            }
         }
+
+        Ok(())
     }
 }
 
@@ -153,7 +172,7 @@ mod tests {
         ];
 
         let mut interpreter = Interpreter::new(&tokens);
-        interpreter.interpret();
+        interpreter.interpret().unwrap();
         assert_eq!(interpreter.token_index, tokens.len() - 1);
 
         let state = interpreter.state;
@@ -177,7 +196,7 @@ mod tests {
         ];
 
         let mut interpreter = Interpreter::new(&tokens);
-        interpreter.interpret();
+        interpreter.interpret().unwrap();
         assert_eq!(interpreter.token_index, tokens.len() - 1);
 
         let state = interpreter.state;
@@ -200,7 +219,7 @@ mod tests {
         ];
 
         let mut interpreter = Interpreter::new(&tokens);
-        interpreter.interpret();
+        interpreter.interpret().unwrap();
         assert_eq!(interpreter.token_index, tokens.len() - 1);
 
         let state = interpreter.state;
@@ -229,7 +248,7 @@ mod tests {
         tokens.push(Token::build_end());
 
         let mut interpreter = Interpreter::new(&tokens);
-        interpreter.interpret();
+        interpreter.interpret().unwrap();
         assert_eq!(interpreter.token_index, tokens.len() - 1);
 
         let state = interpreter.state;
@@ -280,7 +299,7 @@ mod tests {
         ];
 
         let mut interpreter = Interpreter::new(&tokens);
-        interpreter.interpret();
+        interpreter.interpret().unwrap();
         assert_eq!(interpreter.token_index, tokens.len() - 1);
 
         let state = interpreter.state;

@@ -12,7 +12,7 @@ fn main() {
     });
 
     if let Err(e) = run(config) {
-        eprintln!("Interpreter error: {}", e);
+        eprintln!("Error: {}", e);
         process::exit(1);
     }
 }
