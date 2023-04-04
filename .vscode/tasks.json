@@ -10,7 +10,7 @@
             "args": [
                 "run",
                 "--",
-                "hello_world.bf",
+                "tests/hello_world.bf",
             ],
             "group": {
                 "kind": "build",

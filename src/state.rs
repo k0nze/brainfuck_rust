@@ -3,6 +3,8 @@ use custom_error::custom_error;
 custom_error! { pub StateTransitionError
     PointerUnderflow = "pointer underflow (state.pointer < 0)",
     PointerOverflow = "pointer overflow (state.pointer > 29999)",
+    CellUnderflow = "cell underflow (state.cells[*] < 0)",
+    CellOverflow = "cell underflow (state.cells[*] > 255)",
 }
 
 #[derive(Debug)]
@@ -39,12 +41,24 @@ impl State {
         }
     }
 
-    pub fn increment_cell(&mut self) {
-        self.cells[self.pointer] += 1;
+    pub fn increment_cell(&mut self) -> Result<(), StateTransitionError> {
+        match self.cells[self.pointer].checked_add(1) {
+            None => Err(StateTransitionError::CellOverflow),
+            _ => {
+                self.cells[self.pointer] += 1;
+                Ok(())
+            }
+        }
     }
 
-    pub fn decrement_cell(&mut self) {
-        self.cells[self.pointer] -= 1;
+    pub fn decrement_cell(&mut self) -> Result<(), StateTransitionError> {
+        match self.cells[self.pointer].checked_sub(1) {
+            None => Err(StateTransitionError::CellUnderflow),
+            _ => {
+                self.cells[self.pointer] -= 1;
+                Ok(())
+            }
+        }
     }
 
     pub fn get_cell_value(&mut self) -> u8 {
@@ -85,7 +99,7 @@ mod tests {
             Err(StateTransitionError::PointerOverflow) => assert!(true),
             _ => assert!(
                 false,
-                "moving right from cell 29999 should lead to an PointerOverflowError"
+                "moving right from cell 29999 should lead to an PointerOverflow"
             ),
         }
     }
@@ -109,10 +123,22 @@ mod tests {
         state.set_cell_value(42);
         state.move_right().unwrap();
         state.move_left().unwrap();
-        state.increment_cell();
+        state.increment_cell().unwrap();
         let cell_value = state.get_cell_value();
 
         assert_eq!(cell_value, 43);
+
+        for _ in 0..212 {
+            state.increment_cell().unwrap();
+        }
+
+        match state.increment_cell() {
+            Err(StateTransitionError::CellOverflow) => assert!(true),
+            _ => assert!(
+                false,
+                "incrementing a cell above 255 should cause a CellOverflow"
+            ),
+        }
     }
 
     #[test]
@@ -120,11 +146,23 @@ mod tests {
         let mut state = State::new();
 
         state.set_cell_value(42);
-        state.decrement_cell();
+        state.decrement_cell().unwrap();
         state.move_right().unwrap();
         state.move_left().unwrap();
         let cell_value = state.get_cell_value();
 
         assert_eq!(cell_value, 41);
+
+        for _ in 0..41 {
+            state.decrement_cell().unwrap();
+        }
+
+        match state.decrement_cell() {
+            Err(StateTransitionError::CellUnderflow) => assert!(true),
+            _ => assert!(
+                false,
+                "incrementing a cell below 0 should cause a CellUnderflow"
+            ),
+        }
     }
 }

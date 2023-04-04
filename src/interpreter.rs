@@ -1,6 +1,7 @@
 use custom_error::custom_error;
 use std::cmp::Ordering;
 use std::error::Error;
+use std::io::Read;
 
 use crate::token::TokenValue;
 use crate::State;
@@ -27,6 +28,7 @@ impl<'a> Interpreter<'a> {
         }
     }
 
+    /// Interprets the token stream
     pub fn interpret(&mut self) -> Result<(), Box<dyn Error>> {
         let mut token = &self.tokens[self.token_index];
 
@@ -41,11 +43,11 @@ impl<'a> Interpreter<'a> {
                     self.token_index += 1;
                 }
                 TokenValue::IncrementCell => {
-                    self.state.increment_cell();
+                    self.state.increment_cell()?;
                     self.token_index += 1;
                 }
                 TokenValue::DecrementCell => {
-                    self.state.decrement_cell();
+                    self.state.decrement_cell()?;
                     self.token_index += 1;
                 }
                 TokenValue::Output => {
@@ -53,8 +55,13 @@ impl<'a> Interpreter<'a> {
                     self.token_index += 1;
                 }
                 TokenValue::Input => {
-                    // TODO request input
-                    self.state.set_cell_value(42);
+                    // TODO pass a different input stream to be able to read from a file or a pipe
+                    let input = std::io::stdin()
+                        .bytes()
+                        .next()
+                        .and_then(|result| result.ok())
+                        .unwrap();
+                    self.state.set_cell_value(input);
                     self.token_index += 1;
                 }
                 TokenValue::JumpForwardIfZero => match self.state.cells[self.state.pointer] {
@@ -81,6 +88,7 @@ impl<'a> Interpreter<'a> {
         Ok(())
     }
 
+    /// Jumps forward in the token stream from current token index to matching ]
     pub fn jump_forward(&mut self) -> Result<(), InterpreterError> {
         // move forward to find matching ]
         let mut nesting_counter = 0;
@@ -115,6 +123,7 @@ impl<'a> Interpreter<'a> {
         Ok(())
     }
 
+    /// Jumps backward in the token stream from current token index to matching [
     pub fn jump_backward(&mut self) -> Result<(), InterpreterError> {
         // move backward to find matching [
         let mut nesting_counter = 0;
@@ -308,5 +317,93 @@ mod tests {
         assert_eq!(state.cells[1], 0);
         assert_eq!(state.cells[2], 0);
         assert_eq!(state.cells[3], 2);
+    }
+
+    #[test]
+    fn test_closing_nesting_error() {
+        // program: ++++++++>++++>++<<[->[->[->+<<]<]
+        let tokens = vec![
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build_end(),
+        ];
+
+        let mut interpreter = Interpreter::new(&tokens);
+        assert!(interpreter.interpret().is_err());
+    }
+
+    #[test]
+    fn test_opening_nesting_error() {
+        // program: ++++++++>++++>++<<[->->[->+<]<]<]
+        let tokens = vec![
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('[').unwrap(),
+            Token::build('-').unwrap(),
+            Token::build('>').unwrap(),
+            Token::build('+').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build('<').unwrap(),
+            Token::build(']').unwrap(),
+            Token::build_end(),
+        ];
+
+        let mut interpreter = Interpreter::new(&tokens);
+        assert!(interpreter.interpret().is_err());
     }
 }
