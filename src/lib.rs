@@ -1,17 +1,15 @@
 use std::error::Error;
 use std::fs;
 
-mod token;
-use token::{Token, TokenValue};
-
-mod interpreter;
-use interpreter::Interpreter;
-
-mod state;
-use state::State;
-
 mod config;
+mod interpreter;
+mod state;
+mod token;
+
 pub use config::Config;
+use interpreter::Interpreter;
+use state::State;
+use token::{Token, TokenValue};
 
 /// Runs a brainfuck program
 ///

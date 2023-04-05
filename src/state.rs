@@ -44,8 +44,8 @@ impl State {
     pub fn increment_cell(&mut self) -> Result<(), StateTransitionError> {
         match self.cells[self.pointer].checked_add(1) {
             None => Err(StateTransitionError::CellOverflow),
-            _ => {
-                self.cells[self.pointer] += 1;
+            Some(pointer_value) => {
+                self.cells[self.pointer] = pointer_value;
                 Ok(())
             }
         }
@@ -54,8 +54,8 @@ impl State {
     pub fn decrement_cell(&mut self) -> Result<(), StateTransitionError> {
         match self.cells[self.pointer].checked_sub(1) {
             None => Err(StateTransitionError::CellUnderflow),
-            _ => {
-                self.cells[self.pointer] -= 1;
+            Some(pointer_value) => {
+                self.cells[self.pointer] = pointer_value;
                 Ok(())
             }
         }
