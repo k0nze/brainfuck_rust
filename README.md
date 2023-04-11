@@ -1,6 +1,7 @@
 # Brainfuck Rust 🤯🦀
 
 [![CI](https://github.com/k0nze/brainfuck_rust/actions/workflows/ci.yml/badge.svg)](https://github.com/k0nze/brainfuck_rust/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 To get familiar with Rust as a programming language, I decided to write an interpreter for the programming language [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
 
